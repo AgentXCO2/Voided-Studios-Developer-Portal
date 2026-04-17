@@ -15,7 +15,6 @@
       padding: 20px;
       text-align: center;
       border-bottom: 1px solid #7c3aed55;
-      box-shadow: 0 0 15px #7c3aed22;
     }
 
     .header h1 {
@@ -35,7 +34,7 @@
       margin-bottom: 10px;
       border-radius: 10px;
       border: 1px solid #7c3aed44;
-      box-shadow: 0 0 10px #000;
+      cursor: pointer;
       transition: 0.2s;
     }
 
@@ -58,6 +57,42 @@
       opacity: 0.85;
       margin-top: 5px;
     }
+
+    /* 🔥 MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modalContent {
+      background: #1a0033;
+      padding: 25px;
+      border-radius: 12px;
+      width: 400px;
+      border: 1px solid #7c3aed66;
+      box-shadow: 0 0 25px #7c3aed55;
+    }
+
+    .modalContent h2 {
+      color: #c084fc;
+      margin-top: 0;
+    }
+
+    .closeBtn {
+      margin-top: 15px;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #7c3aed;
+      color: white;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -65,11 +100,21 @@
 
 <div class="header">
   <h1>Voided Studios Dev Hub</h1>
-  <p>Meet the development team</p>
 </div>
 
 <div class="main">
   <div id="devList"></div>
+</div>
+
+<!-- 🔥 MODAL -->
+<div id="modal" class="modal">
+  <div class="modalContent">
+    <h2 id="mName"></h2>
+    <p><b id="mRole"></b></p>
+    <p id="mDesc"></p>
+
+    <button class="closeBtn" onclick="closeModal()">Close</button>
+  </div>
 </div>
 
 <!-- FIREBASE -->
@@ -81,7 +126,7 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* 🔥 FIREBASE CONFIG */
+/* CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyB7cKTdERaspllDg0jTHYeJRLF-RPSZKO0",
   authDomain: "voidedstudios-733e5.firebaseapp.com",
@@ -95,16 +140,20 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const devsRef = collection(db, "devs");
 
-/* 📡 LIVE LOAD */
+let devCache = [];
+
+/* LOAD DEV LIST */
 onSnapshot(devsRef, (snapshot) => {
   const list = document.getElementById("devList");
   list.innerHTML = "";
+  devCache = [];
 
   snapshot.forEach(doc => {
     const d = doc.data();
+    devCache.push(d);
 
     list.innerHTML += `
-      <div class="card">
+      <div class="card" onclick="openDev('${d.name}')">
         <h3>${d.name}</h3>
         <div class="role">${d.role}</div>
         <div class="desc">${d.description}</div>
@@ -112,6 +161,24 @@ onSnapshot(devsRef, (snapshot) => {
     `;
   });
 });
+
+/* OPEN MODAL */
+window.openDev = function(name) {
+  const dev = devCache.find(d => d.name === name);
+
+  if (!dev) return;
+
+  document.getElementById("mName").innerText = dev.name;
+  document.getElementById("mRole").innerText = dev.role;
+  document.getElementById("mDesc").innerText = dev.description;
+
+  document.getElementById("modal").style.display = "flex";
+}
+
+/* CLOSE MODAL */
+window.closeModal = function() {
+  document.getElementById("modal").style.display = "none";
+}
 
 </script>
 
