@@ -9,64 +9,26 @@
       font-family: Arial, sans-serif;
       background: radial-gradient(circle at top, #1a0033, #05010a);
       color: white;
-      display: flex;
     }
 
-    /* SIDEBAR */
-    .sidebar {
-      width: 320px;
-      height: 100vh;
+    .header {
       padding: 20px;
-      background: rgba(10, 0, 20, 0.9);
-      border-right: 2px solid #7c3aed;
-      box-shadow: 0 0 25px #7c3aed44;
+      text-align: center;
+      border-bottom: 1px solid #7c3aed55;
+      box-shadow: 0 0 15px #7c3aed22;
     }
 
-    /* MAIN */
+    .header h1 {
+      color: #c084fc;
+      margin: 0;
+    }
+
     .main {
-      flex: 1;
       padding: 20px;
+      max-width: 800px;
+      margin: auto;
     }
 
-    /* INPUTS */
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      border: none;
-      border-radius: 6px;
-      background: #120022;
-      color: white;
-      outline: none;
-      border: 1px solid #7c3aed55;
-    }
-
-    textarea {
-      resize: none;
-      min-height: 60px;
-      overflow: hidden;
-    }
-
-    /* BUTTON */
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border: none;
-      border-radius: 6px;
-      background: linear-gradient(90deg, #7c3aed, #a855f7);
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 0 12px #7c3aed66;
-      transition: 0.2s;
-    }
-
-    button:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 18px #a855f7aa;
-    }
-
-    /* CARD */
     .card {
       background: rgba(20, 0, 40, 0.8);
       padding: 12px;
@@ -74,32 +36,39 @@
       border-radius: 10px;
       border: 1px solid #7c3aed44;
       box-shadow: 0 0 10px #000;
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 18px #7c3aed55;
     }
 
     .card h3 {
       color: #c084fc;
+      margin: 0;
+    }
+
+    .role {
+      font-weight: bold;
+      color: #a855f7;
+    }
+
+    .desc {
+      opacity: 0.85;
+      margin-top: 5px;
     }
   </style>
 </head>
 
 <body>
 
-<div class="sidebar">
-  <h2>Voided Studios Admin</h2>
-
-  <input id="password" placeholder="Password">
-  <button onclick="checkPassword()">Unlock</button>
-
-  <div id="adminPanel" style="display:none;">
-    <input id="name" placeholder="Dev Name">
-    <input id="role" placeholder="Role">
-    <textarea id="desc" placeholder="Description"></textarea>
-    <button onclick="addDev()">Add Dev</button>
-  </div>
+<div class="header">
+  <h1>Voided Studios Dev Hub</h1>
+  <p>Meet the development team</p>
 </div>
 
 <div class="main">
-  <h1>Developers</h1>
   <div id="devList"></div>
 </div>
 
@@ -109,11 +78,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import {
   getFirestore,
   collection,
-  addDoc,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* 🔥 YOUR FIREBASE CONFIG */
+/* 🔥 FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyB7cKTdERaspllDg0jTHYeJRLF-RPSZKO0",
   authDomain: "voidedstudios-733e5.firebaseapp.com",
@@ -127,33 +95,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const devsRef = collection(db, "devs");
 
-/* 🔐 PASSWORD */
-function checkPassword() {
-  const pass = document.getElementById("password").value;
-
-  if (pass === "VoidedStudios.Agent") {
-    document.getElementById("adminPanel").style.display = "block";
-    alert("Unlocked");
-  } else {
-    alert("Wrong password");
-  }
-}
-
-/* ➕ ADD DEV */
-async function addDev() {
-  const name = document.getElementById("name").value;
-  const role = document.getElementById("role").value;
-  const desc = document.getElementById("desc");
-
-  await addDoc(devsRef, {
-    name: name,
-    role: role,
-    description: desc.value
-  });
-
-  alert("Dev added!");
-}
-
 /* 📡 LIVE LOAD */
 onSnapshot(devsRef, (snapshot) => {
   const list = document.getElementById("devList");
@@ -165,26 +106,12 @@ onSnapshot(devsRef, (snapshot) => {
     list.innerHTML += `
       <div class="card">
         <h3>${d.name}</h3>
-        <b>${d.role}</b>
-        <p>${d.description}</p>
+        <div class="role">${d.role}</div>
+        <div class="desc">${d.description}</div>
       </div>
     `;
   });
 });
-
-/* 📈 AUTO EXPAND TEXTAREA */
-const descBox = document.getElementById("desc");
-
-if (descBox) {
-  descBox.addEventListener("input", () => {
-    descBox.style.height = "auto";
-    descBox.style.height = descBox.scrollHeight + "px";
-  });
-}
-
-/* expose */
-window.checkPassword = checkPassword;
-window.addDev = addDev;
 
 </script>
 
