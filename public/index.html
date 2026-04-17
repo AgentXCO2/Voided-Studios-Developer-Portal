@@ -1,1 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Voided Studios Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0d0d0d;
+      color: white;
+      text-align: center;
+    }
 
+    input, textarea {
+      width: 300px;
+      padding: 10px;
+      margin: 5px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: white;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: purple;
+      border: none;
+      color: white;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .card {
+      background: #1a1a1a;
+      margin: 10px auto;
+      padding: 10px;
+      width: 350px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Voided Studios Dev Panel</h1>
+
+<h3>Admin Login Required</h3>
+<input id="password" placeholder="Admin Password" />
+
+<h2>Add Dev</h2>
+<input id="name" placeholder="Dev Name" /><br>
+<input id="role" placeholder="Dev Role" /><br>
+<textarea id="desc" placeholder="Description"></textarea><br>
+
+<button onclick="addDev()">Add Dev</button>
+
+<h2>Dev List</h2>
+<div id="devs"></div>
+
+<script>
+async function loadDevs() {
+  const res = await fetch("/api/devs");
+  const data = await res.json();
+
+  document.getElementById("devs").innerHTML = data.map(d => `
+    <div class="card">
+      <h3>${d.name}</h3>
+      <p><b>Role:</b> ${d.role}</p>
+      <p>${d.description}</p>
+    </div>
+  `).join("");
+}
+
+async function addDev() {
+  const password = document.getElementById("password").value;
+  const name = document.getElementById("name").value;
+  const role = document.getElementById("role").value;
+  const description = document.getElementById("desc").value;
+
+  const res = await fetch("/api/devs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password, name, role, description })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error);
+  } else {
+    loadDevs();
+  }
+}
+
+loadDevs();
+</script>
+
+</body>
+</html>
