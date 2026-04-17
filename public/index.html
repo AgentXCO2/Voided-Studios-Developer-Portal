@@ -1,96 +1,166 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Voided Studios Admin Panel</title>
+  <title>Voided Studios Dev Hub</title>
+
   <style>
     body {
+      margin: 0;
       font-family: Arial;
       background: #0d0d0d;
       color: white;
-      text-align: center;
+      display: flex;
+      height: 100vh;
     }
 
-    input, textarea {
-      width: 300px;
-      padding: 10px;
-      margin: 5px;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      color: white;
+    .left {
+      flex: 2;
+      padding: 20px;
+      overflow-y: auto;
+      border-right: 1px solid #222;
     }
 
-    button {
-      padding: 10px 20px;
-      background: purple;
-      border: none;
-      color: white;
-      cursor: pointer;
-      margin-top: 10px;
+    .right {
+      flex: 1;
+      padding: 20px;
+      background: #111;
     }
 
     .card {
       background: #1a1a1a;
-      margin: 10px auto;
-      padding: 10px;
-      width: 350px;
+      padding: 12px;
+      margin-bottom: 10px;
       border-radius: 10px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: white;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: purple;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .admin-box {
+      background: #0f0f0f;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #222;
     }
   </style>
 </head>
+
 <body>
 
-<h1>Voided Studios Dev Panel</h1>
+<!-- LEFT SIDE -->
+<div class="left">
+  <h1>Voided Studios Developers</h1>
+  <div id="devList"></div>
+</div>
 
-<h3>Admin Login Required</h3>
-<input id="password" placeholder="Admin Password" />
+<!-- RIGHT SIDE -->
+<div class="right">
+  <h2>Admin Panel</h2>
 
-<h2>Add Dev</h2>
-<input id="name" placeholder="Dev Name" /><br>
-<input id="role" placeholder="Dev Role" /><br>
-<textarea id="desc" placeholder="Description"></textarea><br>
+  <!-- LOGIN -->
+  <div id="loginBox" class="admin-box">
+    <input id="password" placeholder="Enter Admin Password" />
+    <button onclick="unlock()">Unlock Admin</button>
+  </div>
 
-<button onclick="addDev()">Add Dev</button>
+  <!-- ADMIN CONTROLS -->
+  <div id="adminControls" class="hidden">
 
-<h2>Dev List</h2>
-<div id="devs"></div>
+    <h3>Add Developer</h3>
+
+    <input id="name" placeholder="Dev Name" />
+    <input id="role" placeholder="Dev Role" />
+    <textarea id="desc" placeholder="Description"></textarea>
+
+    <button onclick="addDev()">Add Dev</button>
+
+  </div>
+</div>
 
 <script>
+
 async function loadDevs() {
   const res = await fetch("/api/devs");
   const data = await res.json();
 
-  document.getElementById("devs").innerHTML = data.map(d => `
+  document.getElementById("devList").innerHTML = data.map(dev => `
     <div class="card">
-      <h3>${d.name}</h3>
-      <p><b>Role:</b> ${d.role}</p>
-      <p>${d.description}</p>
+      <h3>${dev.name}</h3>
+      <b>${dev.role}</b>
+      <p>${dev.description}</p>
     </div>
   `).join("");
 }
 
-async function addDev() {
-  const password = document.getElementById("password").value;
-  const name = document.getElementById("name").value;
-  const role = document.getElementById("role").value;
-  const description = document.getElementById("desc").value;
+// unlock admin panel
+function unlock() {
+  const pass = document.getElementById("password").value;
 
+  if (pass === "VoidedStudios.Agent") {
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("adminControls").classList.remove("hidden");
+  } else {
+    alert("Wrong password");
+  }
+}
+
+// add dev
+async function addDev() {
   const res = await fetch("/api/devs", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password, name, role, description })
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      password: "VoidedStudios.Agent",
+      name: document.getElementById("name").value,
+      role: document.getElementById("role").value,
+      description: document.getElementById("desc").value
+    })
   });
 
   const data = await res.json();
 
   if (data.error) {
     alert(data.error);
-  } else {
-    loadDevs();
+    return;
   }
+
+  document.getElementById("name").value = "";
+  document.getElementById("role").value = "";
+  document.getElementById("desc").value = "";
+
+  loadDevs();
 }
 
 loadDevs();
+
 </script>
 
+</body>
+</html>
 </body>
 </html>
