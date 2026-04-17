@@ -3,10 +3,14 @@
 <head>
   <title>Voided Studios Dev Hub</title>
 
+  <!-- Firebase CDN (IMPORTANT) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
   <style>
     body {
       margin: 0;
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       background: #0d0d0d;
       color: white;
       display: flex;
@@ -36,7 +40,7 @@
     input, textarea {
       width: 100%;
       padding: 10px;
-      margin-top: 5px;
+      margin-top: 6px;
       margin-bottom: 10px;
       background: #1a1a1a;
       border: 1px solid #333;
@@ -59,36 +63,32 @@
       display: none;
     }
 
-    .admin-box {
-      background: #0f0f0f;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid #222;
+    h1, h2, h3 {
+      margin-top: 0;
     }
   </style>
 </head>
 
 <body>
 
-<!-- LEFT SIDE -->
+<!-- LEFT SIDE: DEV LIST -->
 <div class="left">
   <h1>Voided Studios Developers</h1>
   <div id="devList"></div>
 </div>
 
-<!-- RIGHT SIDE -->
+<!-- RIGHT SIDE: ADMIN PANEL -->
 <div class="right">
   <h2>Admin Panel</h2>
 
   <!-- LOGIN -->
-  <div id="loginBox" class="admin-box">
-    <input id="password" placeholder="Enter Admin Password" />
+  <div id="loginBox">
+    <input id="password" type="password" placeholder="Admin Password" />
     <button onclick="unlock()">Unlock Admin</button>
   </div>
 
   <!-- ADMIN CONTROLS -->
-  <div id="adminControls" class="hidden">
-
+  <div id="adminPanel" class="hidden">
     <h3>Add Developer</h3>
 
     <input id="name" placeholder="Dev Name" />
@@ -96,71 +96,83 @@
     <textarea id="desc" placeholder="Description"></textarea>
 
     <button onclick="addDev()">Add Dev</button>
-
   </div>
 </div>
 
 <script>
+/* =========================
+   FIREBASE CONFIG
+========================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyB7cKTdERaspllGd0jTHYeJRLF-RPSZKO0",
+  authDomain: "voidedstudios-733e5.firebaseapp.com",
+  projectId: "voidedstudios-733e5",
+  storageBucket: "voidedstudios-733e5.appspot.com",
+  messagingSenderId: "660850632203",
+  appId: "1:660850632203:web:f85bc6b67e4969555f490e"
+};
 
-async function loadDevs() {
-  const res = await fetch("/api/devs");
-  const data = await res.json();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  document.getElementById("devList").innerHTML = data.map(dev => `
-    <div class="card">
-      <h3>${dev.name}</h3>
-      <b>${dev.role}</b>
-      <p>${dev.description}</p>
-    </div>
-  `).join("");
-}
-
-// unlock admin panel
+/* =========================
+   ADMIN LOGIN
+========================= */
 function unlock() {
   const pass = document.getElementById("password").value;
 
   if (pass === "VoidedStudios.Agent") {
     document.getElementById("loginBox").classList.add("hidden");
-    document.getElementById("adminControls").classList.remove("hidden");
+    document.getElementById("adminPanel").classList.remove("hidden");
   } else {
     alert("Wrong password");
   }
 }
 
-// add dev
+/* =========================
+   ADD DEV
+========================= */
 async function addDev() {
-  const res = await fetch("/api/devs", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      password: "VoidedStudios.Agent",
-      name: document.getElementById("name").value,
-      role: document.getElementById("role").value,
-      description: document.getElementById("desc").value
-    })
-  });
+  const name = document.getElementById("name").value;
+  const role = document.getElementById("role").value;
+  const desc = document.getElementById("desc").value;
 
-  const data = await res.json();
-
-  if (data.error) {
-    alert(data.error);
+  if (!name || !role) {
+    alert("Missing name or role");
     return;
   }
+
+  await db.collection("devs").add({
+    name,
+    role,
+    description: desc || "No description"
+  });
 
   document.getElementById("name").value = "";
   document.getElementById("role").value = "";
   document.getElementById("desc").value = "";
-
-  loadDevs();
 }
 
-loadDevs();
+/* =========================
+   LIVE DEV LIST
+========================= */
+db.collection("devs").onSnapshot(snapshot => {
+  const list = document.getElementById("devList");
+  list.innerHTML = "";
 
+  snapshot.forEach(doc => {
+    const d = doc.data();
+
+    list.innerHTML += `
+      <div class="card">
+        <h3>${d.name}</h3>
+        <b>${d.role}</b>
+        <p>${d.description}</p>
+      </div>
+    `;
+  });
+});
 </script>
 
-</body>
-</html>
 </body>
 </html>
